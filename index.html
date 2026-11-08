@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --ink:#141a2e; --muted:#6b7490; --line:#e3e7f0;
+  --accent:#2f5bff; --accent-soft:#e8edff; --danger:#d93a4a; --done:#9aa3bb;
+  --shadow:0 1px 2px rgba(20,26,46,.05),0 12px 32px -12px rgba(20,26,46,.14);
+  --font:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#0e1220; --surface:#161c30; --ink:#eef1fb; --muted:#8c96b5; --line:#242c46;
+  --accent:#6f8dff; --accent-soft:#1f2850; --danger:#ff6b78; --done:#5b6585;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 16px 40px -16px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0}
+html{background:var(--bg)}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);min-height:100vh;
+  display:flex;justify-content:center;padding:56px 20px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{width:100%;max-width:620px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px}
+h1{font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.date{color:var(--muted);font-size:.9rem;font-weight:500;margin-top:4px}
+.icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);
+  color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:color .15s,border-color .15s}
+.icon-btn:hover{color:var(--ink);border-color:var(--muted)}
+.sheet{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.progress{height:4px;background:var(--line)}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s ease}
+.add{display:flex;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.add input[type=text]{flex:1;min-width:0;font:inherit;font-size:1rem;border:0;background:transparent;color:var(--ink);outline:0;padding:8px 2px}
+.add input::placeholder{color:var(--muted)}
+.add input[type=date]{font:inherit;font-size:.85rem;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:0 10px;height:40px}
+.btn{font:inherit;font-weight:700;font-size:.9rem;border:0;border-radius:10px;height:40px;padding:0 18px;
+  background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s,transform .1s}
+.btn:hover{filter:brightness(1.08)} .btn:active{transform:scale(.97)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:12px}
+.tab{font:inherit;font-size:.85rem;font-weight:600;color:var(--muted);background:none;border:0;border-radius:9px;padding:6px 14px;cursor:pointer}
+.tab[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(20,26,46,.12)}
+.count{color:var(--muted);font-size:.85rem;font-weight:500}
+ul{list-style:none;padding:0}
+li{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);transition:background .15s}
+li:last-child{border-bottom:0}
+li:hover{background:color-mix(in srgb,var(--bg) 55%,transparent)}
+li.enter{animation:in .22s ease}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.check{appearance:none;flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--done);cursor:pointer;
+  display:grid;place-items:center;transition:background .15s,border-color .15s}
+.check:hover{border-color:var(--accent)}
+.check:checked{background:var(--accent);border-color:var(--accent)}
+.check:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.body{flex:1;min-width:0}
+.text{font-weight:500;overflow-wrap:anywhere;cursor:text}
+li.done .text{color:var(--done);text-decoration:line-through;text-decoration-color:var(--done)}
+.due{font-size:.78rem;font-weight:600;color:var(--muted);margin-top:2px}
+.due.late{color:var(--danger)}
+.edit{width:100%;font:inherit;font-weight:500;color:var(--ink);background:var(--accent-soft);border:0;border-radius:8px;padding:6px 10px;outline:2px solid var(--accent)}
+.del{opacity:0;border:0;background:none;color:var(--muted);cursor:pointer;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;transition:opacity .15s,color .15s}
+li:hover .del,.del:focus-visible{opacity:1}
+.del:hover{color:var(--danger)}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:4px}
+footer{display:flex;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--line);font-size:.85rem}
+.link{font:inherit;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer}
+.link:hover{color:var(--danger)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(hover:none){.del{opacity:1}}
+@media(max-width:520px){body{padding:28px 14px}.add{flex-wrap:wrap}.add input[type=text]{flex-basis:100%}.add .btn{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <h1>Today’s tasks</h1>
+      <p class="date" id="date"></p>
+    </div>
+    <button class="icon-btn" id="theme" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </header>
+
+  <section class="sheet">
+    <div class="progress" role="progressbar" aria-label="Completed tasks" aria-valuemin="0" aria-valuemax="100"><i id="fill"></i></div>
+    <form class="add" id="form" autocomplete="off">
+      <input type="text" id="input" placeholder="Add a task" aria-label="New task" maxlength="200" required>
+      <input type="date" id="due" aria-label="Due date">
+      <button class="btn" type="submit">Add task</button>
+    </form>
+    <div class="bar">
+      <div class="tabs" id="tabs">
+        <button class="tab" data-f="all" aria-pressed="true">All</button>
+        <button class="tab" data-f="active" aria-pressed="false">Active</button>
+        <button class="tab" data-f="done" aria-pressed="false">Completed</button>
+      </div>
+      <span class="count" id="count"></span>
+    </div>
+    <ul id="list"></ul>
+    <footer id="foot" hidden>
+      <span class="count" id="summary"></span>
+      <button class="link" id="clear">Clear completed</button>
+    </footer>
+  </section>
+</main>
+
+<script>
+(() => {
+  const KEY = "tasks.v1", THEME = "tasks.theme";
+  const $ = id => document.getElementById(id);
+  const list = $("list"), form = $("form"), input = $("input"), due = $("due");
+  let tasks = [], filter = "all";
+
+  const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(tasks)); } catch {} };
+
+  // Theme
+  const root = document.documentElement;
+  const savedTheme = (() => { try { return localStorage.getItem(THEME); } catch { return null; } })();
+  root.dataset.theme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  $("theme").onclick = () => {
+    root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+    try { localStorage.setItem(THEME, root.dataset.theme); } catch {}
+  };
+
+  $("date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+  const todayStr = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const fmtDue = s => {
+    const t = todayStr();
+    if (s === t) return "Due today";
+    const d = new Date(s + "T00:00");
+    return "Due " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+
+  function visible() {
+    return tasks.filter(t => filter === "all" || (filter === "done" ? t.done : !t.done));
+  }
+
+  function render(newId) {
+    const items = visible();
+    list.innerHTML = "";
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.className = "empty"; li.style.display = "block";
+      const msgs = {
+        all: ["No tasks yet", "Type a task above and press Enter to add it."],
+        active: ["Nothing left to do", "Every task is completed."],
+        done: ["No completed tasks", "Finished tasks will show up here."]
+      }[filter];
+      li.innerHTML = `<strong>${msgs[0]}</strong>${msgs[1]}`;
+      list.appendChild(li);
+    }
+    for (const t of items) {
+      const li = document.createElement("li");
+      li.dataset.id = t.id;
+      if (t.done) li.classList.add("done");
+      if (t.id === newId) li.classList.add("enter");
+      const late = t.due && !t.done && t.due < todayStr();
+      li.innerHTML = `
+        <input type="checkbox" class="check" aria-label="Mark complete" ${t.done ? "checked" : ""}>
+        <div class="body"><div class="text"></div>${t.due ? `<div class="due ${late ? "late" : ""}">${late ? "Overdue · " : ""}${fmtDue(t.due)}</div>` : ""}</div>
+        <button class="del" aria-label="Delete task" title="Delete">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14"/></svg>
+        </button>`;
+      li.querySelector(".text").textContent = t.text;
+      list.appendChild(li);
+    }
+    const total = tasks.length, done = tasks.filter(t => t.done).length, left = total - done;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    $("fill").style.width = pct + "%";
+    document.querySelector(".progress").setAttribute("aria-valuenow", pct);
+    $("count").textContent = total ? `${left} remaining` : "";
+    $("summary").textContent = `${done} of ${total} completed`;
+    $("foot").hidden = !total;
+    $("clear").hidden = !done;
+    document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-pressed", b.dataset.f === filter));
+  }
+
+  function add(text, dueDate) {
+    const t = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, due: dueDate || "", done: false };
+    tasks.unshift(t); save(); render(t.id);
+  }
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const v = input.value.trim();
+    if (!v) return;
+    add(v, due.value);
+    input.value = ""; due.value = ""; input.focus();
+  };
+
+  $("tabs").onclick = e => {
+    const b = e.target.closest(".tab");
+    if (b) { filter = b.dataset.f; render(); }
+  };
+
+  $("clear").onclick = () => { tasks = tasks.filter(t => !t.done); save(); render(); };
+
+  list.onclick = e => {
+    const li = e.target.closest("li[data-id]");
+    if (!li) return;
+    const t = tasks.find(x => x.id === li.dataset.id);
+    if (e.target.classList.contains("check")) { t.done = e.target.checked; save(); render(); }
+    else if (e.target.closest(".del")) { tasks = tasks.filter(x => x !== t); save(); render(); }
+  };
+
+  // Edit in place: double-click the text
+  list.ondblclick = e => {
+    const el = e.target.closest(".text");
+    if (!el) return;
+    const li = el.closest("li"), t = tasks.find(x => x.id === li.dataset.id);
+    const field = document.createElement("input");
+    field.className = "edit"; field.value = t.text; field.maxLength = 200;
+    el.replaceWith(field); field.focus(); field.select();
+    let finished = false;
+    const finish = commit => {
+      if (finished) return; finished = true;
+      const v = field.value.trim();
+      if (commit && v) { t.text = v; save(); }
+      render();
+    };
+    field.onblur = () => finish(true);
+    field.onkeydown = ev => {
+      if (ev.key === "Enter") finish(true);
+      if (ev.key === "Escape") finish(false);
+    };
+  };
+
+  tasks = read(KEY, []);
+  render();
+})();
+</script>
+</body>
+</html>
